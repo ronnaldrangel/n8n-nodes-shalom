@@ -1,0 +1,51 @@
+name: Publicar en npm
+
+# Se publica al empujar un tag vX.Y.Z (por ejemplo v1.0.5) o a mano desde la
+# pestana Actions. Nunca al hacer push a main: asi una version publicada
+# siempre corresponde a un tag concreto y se puede rastrear.
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write # necesario para la atestacion de procedencia de npm
+
+jobs:
+  publish:
+    name: Compilar y publicar
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: "https://registry.npmjs.org"
+          cache: "npm"
+
+      - name: Instalar dependencias
+        run: npm ci
+
+      - name: Comprobar que el tag coincide con la version del package.json
+        if: startsWith(github.ref, 'refs/tags/')
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG="$(node -p "require('./package.json').version")"
+          echo "tag=$TAG package.json=$PKG"
+          if [ "$TAG" != "$PKG" ]; then
+            echo "::error::El tag $TAG no coincide con la version $PKG de package.json"
+            exit 1
+          fi
+
+      - name: Compilar
+        run: npm run build
+
+      - name: Publicar en npm
+        run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
