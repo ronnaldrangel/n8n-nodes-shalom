@@ -6,6 +6,8 @@ Nodo de [n8n](https://n8n.io) para integrar **Shalom API Perú** ([shalom-api.la
 
 > Proyecto independiente de integración compatible con Shalom Pro. No está afiliado a Shalom Empresarial S.A.C.
 
+> Código fuente: [github.com/ronnaldrangel/n8n-nodes-shalom](https://github.com/ronnaldrangel/n8n-nodes-shalom)
+
 ## Requisitos
 
 - n8n **self-hosted** (para integrar un nodo custom es necesario gestionar tu propia instancia de n8n).

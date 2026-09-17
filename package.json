@@ -20,6 +20,13 @@
     "name": "Shalom API Perú",
     "url": "https://shalom-api.lat"
   },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ronnaldrangel/n8n-nodes-shalom.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ronnaldrangel/n8n-nodes-shalom/issues"
+  },
   "main": "dist/index.js",
   "files": [
     "dist"
