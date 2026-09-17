@@ -1,0 +1,53 @@
+{
+  "name": "n8n-nodes-shalom",
+  "version": "1.0.5",
+  "description": "Nodo de n8n para consumir la API de Shalom: agencias, ubicaciones, tracking, cuentas e instancias.",
+  "keywords": [
+    "n8n-community-node-package",
+    "shalom",
+    "shalom-api",
+    "api-de-shalom",
+    "courier",
+    "envios",
+    "tracking",
+    "peru",
+    "logistica",
+    "paqueteria"
+  ],
+  "license": "MIT",
+  "homepage": "https://shalom-api.lat/integraciones/n8n",
+  "author": {
+    "name": "Shalom API Perú",
+    "url": "https://shalom-api.lat"
+  },
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "nodes": [
+      "dist/nodes/ShalomApi/ShalomApi.node.js"
+    ],
+    "credentials": [
+      "dist/credentials/ShalomApiApi.credentials.js"
+    ]
+  },
+  "scripts": {
+    "build": "tsc && node scripts/copy-resources.mjs",
+    "clean": "rimraf dist",
+    "dev": "tsc --watch",
+    "prepack": "npm run build"
+  },
+  "dependencies": {
+    "n8n-workflow": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.14.0",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.4.5"
+  },
+  "engines": {
+    "node": ">=18.10"
+  }
+}
