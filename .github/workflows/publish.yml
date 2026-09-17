@@ -1,5 +1,17 @@
 name: Publicar en npm
 
+# Requisito del secreto NPM_TOKEN: el token debe poder publicar directamente.
+# Si en npm se crea con "staged publishing" activado, el registro responde
+#   403 E_STAGE_REQUIRED - This token can only publish to a staging area
+# y este workflow falla. En ese caso, crea un token granular sobre el paquete
+# n8n-nodes-shalom (o sobre todos los paquetes de tu cuenta personal, no de una
+# organizacion) con permiso Read and write y sin staged publishing.
+#
+# Alternativa sin token: configurar Trusted Publishing en npm apuntando a este
+# repositorio y a este workflow. npm autentica por OIDC con `id-token: write`,
+# que ya esta declarado abajo, y el paquete queda marcado como publicado desde
+# GitHub Actions. Para eso, borra el bloque `env` del ultimo paso.
+#
 # Se publica al empujar un tag vX.Y.Z (por ejemplo v1.0.5) o a mano desde la
 # pestana Actions. Nunca al hacer push a main: asi una version publicada
 # siempre corresponde a un tag concreto y se puede rastrear.
