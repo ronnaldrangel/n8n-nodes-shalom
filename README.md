@@ -71,6 +71,11 @@ N8N_CUSTOM_EXTENSIONS="$(npm root -g)" n8n start
 | | Envíos pendientes *(Pro)* | `POST /account/pending-shipments` |
 | | Información del usuario *(Pro)* | `POST /account/get-user` |
 | **Instancias** | Crear instancia *(Pro)* | `POST /instances` |
+| **Autogestión** | Cambiar clave de recojo *(Pro)* | `POST /shipments/pickup-code` |
+| | Iniciar autogestión (envía el código) *(Pro)* | `POST /shipments/self-management` |
+| | Confirmar autogestión *(Pro)* | `POST /shipments/self-management/confirm` |
+| | Historial de autogestiones *(Pro)* | `GET /shipments/self-management` |
+| | Ubigeo de reparto *(Pro)* | `GET /shipments/home-delivery/ubigeo` |
 | | Listar instancias *(Pro)* | `GET /instances` |
 | | Eliminar instancia *(Pro)* | `DELETE /instances` |
 | | Iniciar sesión (Shalom Pro) *(Pro)* | `POST /instances/login` |

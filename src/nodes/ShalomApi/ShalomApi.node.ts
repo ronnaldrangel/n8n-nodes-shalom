@@ -165,6 +165,39 @@ const RESOURCES: ResourceDefinition[] = [
 			},
 		],
 	},
+
+	{
+		name: 'autogestion',
+		displayName: 'Autogestión',
+		description: 'Gestiona una guía ya creada en Shalom Pro: clave de recojo, contacto, destino, devolución, retención, liberación y reparto a domicilio.',
+		operations: [
+			{
+				value: 'pickupCode',
+				displayName: 'Cambiar clave de recojo',
+				description: 'Actualiza la clave de recojo de una guía pendiente (sin código de verificación).',
+			},
+			{
+				value: 'start',
+				displayName: 'Iniciar autogestión (envía el código)',
+				description: 'Guarda el cambio y pide a Shalom el código por SMS o email. Devuelve un challengeId de 10 minutos.',
+			},
+			{
+				value: 'confirm',
+				displayName: 'Confirmar autogestión',
+				description: 'Valida el código y aplica el cambio guardado en el challenge.',
+			},
+			{
+				value: 'history',
+				displayName: 'Historial de autogestiones',
+				description: 'Lista las autogestiones hechas en la cuenta, con filtros por guía, tipo y fechas.',
+			},
+			{
+				value: 'ubigeo',
+				displayName: 'Ubigeo de reparto',
+				description: 'Departamentos, provincias o distritos para pedir reparto a domicilio.',
+			},
+		],
+	},
 ];
 
 const instanceIdField: INodeProperties = {
@@ -192,6 +225,15 @@ const orderCodeField: INodeProperties = {
 	default: '',
 	required: true,
 	description: 'Código de seguridad (4 caracteres).',
+};
+
+const guiaField: INodeProperties = {
+	displayName: 'Número de guía',
+	name: 'guia',
+	type: 'string',
+	default: '',
+	required: true,
+	description: 'Número de guía de la autogestión (6 a 12 dígitos).',
 };
 
 function getOperationFields(resource: string, operation: string): INodeProperties[] {
@@ -728,6 +770,219 @@ function getOperationFields(resource: string, operation: string): INodePropertie
 				},
 			];
 
+		case 'autogestion/pickupCode':
+			return [
+				instanceIdField,
+				guiaField,
+				{
+					displayName: 'Nueva clave de recojo',
+					name: 'clave',
+					type: 'string',
+					default: '',
+					required: true,
+					description: 'Clave de recojo de 4 dígitos.',
+				},
+			];
+
+		case 'autogestion/start':
+			return [
+				instanceIdField,
+				guiaField,
+				{
+					displayName: 'Tipo de autogestión',
+					name: 'tipo',
+					type: 'options',
+					default: 'cambiar_contacto',
+					description: 'Cambio que se aplicará sobre la guía. Shalom exige que esté en la agencia destino salvo en agregar contacto.',
+					options: [
+						{ name: 'Agregar contacto', value: 'cambiar_contacto' },
+						{ name: 'Cambio de destino', value: 'cambio_destino' },
+						{ name: 'Devolución de mercadería', value: 'devolucion_mercaderia' },
+						{ name: 'Retención de entrega', value: 'retencion_entrega' },
+						{ name: 'Liberación de carga', value: 'liberacion_carga' },
+						{ name: 'Reparto a domicilio', value: 'reparto_domicilio' },
+					],
+				},
+				{
+					displayName: 'Teléfono',
+					name: 'telefono',
+					type: 'string',
+					default: '',
+					required: true,
+					description: 'Teléfono de 9 dígitos que recibe y valida el código.',
+				},
+				{
+					displayName: 'Canal del código',
+					name: 'canal',
+					type: 'options',
+					default: 'sms',
+					options: [
+						{ name: 'SMS', value: 'sms' },
+						{ name: 'Email', value: 'email' },
+					],
+				},
+				{
+					displayName: 'Email',
+					name: 'email',
+					type: 'string',
+					default: '',
+					displayOptions: { show: { canal: ['email'] } },
+					description: 'Correo que recibe el código cuando el canal es email.',
+				},
+				{
+					displayName: 'Documento del destinatario',
+					name: 'destinatario',
+					type: 'string',
+					default: '',
+					displayOptions: { show: { tipo: ['cambiar_contacto', 'cambio_destino', 'devolucion_mercaderia'] } },
+					description: 'Obligatorio en agregar contacto; en destino y devolución se toma del envío pendiente si no lo envías.',
+				},
+				{
+					displayName: 'Agencia destino',
+					name: 'destino',
+					type: 'string',
+					default: '',
+					displayOptions: { show: { tipo: ['cambio_destino', 'devolucion_mercaderia'] } },
+					description: 'ter_id o nombre de la agencia destino (debe estar habilitada para recibir envíos).',
+				},
+				{
+					displayName: 'Dirección de entrega',
+					name: 'direccion',
+					type: 'string',
+					default: '',
+					displayOptions: { show: { tipo: ['reparto_domicilio'] } },
+				},
+				{
+					displayName: 'Departamento (dep_id)',
+					name: 'dep_id',
+					type: 'number',
+					default: 0,
+					displayOptions: { show: { tipo: ['reparto_domicilio'] } },
+				},
+				{
+					displayName: 'Provincia (prov_id)',
+					name: 'prov_id',
+					type: 'number',
+					default: 0,
+					displayOptions: { show: { tipo: ['reparto_domicilio'] } },
+				},
+				{
+					displayName: 'Distrito (dist_id)',
+					name: 'dist_id',
+					type: 'number',
+					default: 0,
+					displayOptions: { show: { tipo: ['reparto_domicilio'] } },
+				},
+				{
+					displayName: 'Tarifa de reparto (rate)',
+					name: 'rate',
+					type: 'number',
+					default: 0,
+					displayOptions: { show: { tipo: ['reparto_domicilio'] } },
+					description: 'Importe que Shalom cotiza para el reparto.',
+				},
+				{
+					displayName: 'Tarifa de etiqueta (label_rate)',
+					name: 'label_rate',
+					type: 'number',
+					default: 0,
+					displayOptions: { show: { tipo: ['reparto_domicilio'] } },
+				},
+			];
+
+		case 'autogestion/confirm':
+			return [
+				instanceIdField,
+				{
+					displayName: 'Challenge ID',
+					name: 'challengeId',
+					type: 'string',
+					default: '',
+					required: true,
+					description: 'Identificador que devolvió la autogestión al enviar el código.',
+				},
+				{
+					displayName: 'Código recibido',
+					name: 'clave',
+					type: 'string',
+					default: '',
+					required: true,
+					description: 'Código alfanumérico de 4 a 8 caracteres que llegó por SMS o email.',
+				},
+			];
+
+		case 'autogestion/history':
+			return [
+				instanceIdField,
+				{
+					displayName: 'Guía',
+					name: 'guia',
+					type: 'string',
+					default: '',
+					description: 'Filtra por número de guía.',
+				},
+				{
+					displayName: 'Tipo',
+					name: 'tipo',
+					type: 'options',
+					default: '',
+					options: [
+						{ name: 'Todos', value: '' },
+						{ name: 'Agregar contacto', value: 'cambiar_contacto' },
+						{ name: 'Cambio de destino', value: 'cambio_destino' },
+						{ name: 'Actualización de clave', value: 'cambio_clave' },
+						{ name: 'Devolución de mercadería', value: 'devolucion_mercaderia' },
+						{ name: 'Retención de entrega', value: 'retencion_entrega' },
+						{ name: 'Reparto a domicilio', value: 'reparto_domicilio' },
+					],
+				},
+				{
+					displayName: 'Desde',
+					name: 'desde',
+					type: 'string',
+					default: '',
+					description: 'Fecha inicial (YYYY-MM-DD).',
+				},
+				{
+					displayName: 'Hasta',
+					name: 'hasta',
+					type: 'string',
+					default: '',
+					description: 'Fecha final (YYYY-MM-DD).',
+				},
+				{
+					displayName: 'Página',
+					name: 'page',
+					type: 'number',
+					default: 0,
+				},
+				{
+					displayName: 'Por página',
+					name: 'per_page',
+					type: 'number',
+					default: 0,
+				},
+			];
+
+		case 'autogestion/ubigeo':
+			return [
+				instanceIdField,
+				{
+					displayName: 'Departamento (dep_id)',
+					name: 'dep_id',
+					type: 'number',
+					default: 0,
+					description: 'Sin valor devuelve los departamentos.',
+				},
+				{
+					displayName: 'Provincia (prov_id)',
+					name: 'prov_id',
+					type: 'number',
+					default: 0,
+					description: 'Requiere dep_id; con ambos devuelve los distritos.',
+				},
+			];
+
 		default:
 			return [];
 	}
@@ -796,7 +1051,7 @@ export class ShalomApi implements INodeType {
 		version: 1,
 		subtitle: '={{$parameter["operation"] + " · " + $parameter["resource"]}}',
 		description:
-			'Consume la API de Shalom: agencias, ubicaciones, tracking, cuentas e instancias.',
+			'Consume la API de Shalom: agencias, ubicaciones, tracking, cuentas, instancias y autogestiones.',
 		defaults: { name: 'Shalom API' },
 		inputs: ['main'],
 		outputs: ['main'],
@@ -1152,6 +1407,114 @@ export class ShalomApi implements INodeType {
 							method: 'POST',
 							url: `${baseUrl}/instances/logout`,
 							body: { instanceId },
+							json: true,
+						});
+						returnData.push({ json: response as unknown as IDataObject });
+						break;
+					}
+
+					case 'autogestion/pickupCode': {
+						const instanceId = getInstanceId(itemIndex);
+						const body: IDataObject = {
+							instanceId,
+							guia: String(this.getNodeParameter('guia', itemIndex, '')),
+							clave: String(this.getNodeParameter('clave', itemIndex, '')),
+						};
+						const response = await request('shalomApiApi', {
+							method: 'POST',
+							url: `${baseUrl}/shipments/pickup-code`,
+							body,
+							json: true,
+						});
+						returnData.push({ json: response as unknown as IDataObject });
+						break;
+					}
+
+					case 'autogestion/start': {
+						const instanceId = getInstanceId(itemIndex);
+						const body: IDataObject = {
+							instanceId,
+							guia: String(this.getNodeParameter('guia', itemIndex, '')),
+							tipo: String(this.getNodeParameter('tipo', itemIndex, '')),
+							telefono: String(this.getNodeParameter('telefono', itemIndex, '')),
+						};
+
+						const canal = String(this.getNodeParameter('canal', itemIndex, 'sms') ?? '');
+						if (canal) body.canal = canal;
+
+						for (const key of ['email', 'destinatario', 'destino', 'direccion']) {
+							const value = String(this.getNodeParameter(key, itemIndex, '') ?? '');
+							if (value !== '') body[key] = value;
+						}
+
+						for (const key of ['dep_id', 'prov_id', 'dist_id', 'rate', 'label_rate']) {
+							const value = Number(this.getNodeParameter(key, itemIndex, 0));
+							if (value > 0) body[key] = value;
+						}
+
+						const response = await request('shalomApiApi', {
+							method: 'POST',
+							url: `${baseUrl}/shipments/self-management`,
+							body,
+							json: true,
+						});
+						returnData.push({ json: response as unknown as IDataObject });
+						break;
+					}
+
+					case 'autogestion/confirm': {
+						const instanceId = getInstanceId(itemIndex);
+						const response = await request('shalomApiApi', {
+							method: 'POST',
+							url: `${baseUrl}/shipments/self-management/confirm`,
+							body: {
+								instanceId,
+								challengeId: String(this.getNodeParameter('challengeId', itemIndex, '')),
+								clave: String(this.getNodeParameter('clave', itemIndex, '')),
+							},
+							json: true,
+						});
+						returnData.push({ json: response as unknown as IDataObject });
+						break;
+					}
+
+					case 'autogestion/history': {
+						const instanceId = getInstanceId(itemIndex);
+						const qs: IDataObject = { instanceId };
+
+						for (const key of ['guia', 'tipo', 'desde', 'hasta']) {
+							const value = String(this.getNodeParameter(key, itemIndex, '') ?? '');
+							if (value !== '') qs[key] = value;
+						}
+
+						for (const key of ['page', 'per_page']) {
+							const value = Number(this.getNodeParameter(key, itemIndex, 0));
+							if (value > 0) qs[key] = value;
+						}
+
+						const response = await request('shalomApiApi', {
+							method: 'GET',
+							url: `${baseUrl}/shipments/self-management`,
+							qs,
+							json: true,
+						});
+						returnData.push({ json: response as unknown as IDataObject });
+						break;
+					}
+
+					case 'autogestion/ubigeo': {
+						const instanceId = getInstanceId(itemIndex);
+						const qs: IDataObject = { instanceId };
+
+						for (const key of ['dep_id', 'prov_id']) {
+							const value = Number(this.getNodeParameter(key, itemIndex, 0));
+							if (value > 0) qs[key] = value;
+						}
+
+						const response = await request('shalomApiApi', {
+							method: 'GET',
+							url: `${baseUrl}/shipments/home-delivery/ubigeo`,
+							qs,
 							json: true,
 						});
 						returnData.push({ json: response as unknown as IDataObject });
