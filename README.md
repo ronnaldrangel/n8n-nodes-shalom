@@ -62,8 +62,8 @@ N8N_CUSTOM_EXTENSIONS="$(npm root -g)" n8n start
 | | Listar distritos | `GET /locations/departments/:depId/provinces/:provId/districts` |
 | **Tracking** | Rastrear envío | `POST /track` |
 | | Rastrear en lote (máx. 50) | `POST /track/batch` |
-| | Descargar comprobante | `GET /track/voucher` |
-| | Descargar etiqueta PDF | `GET /track/label` |
+| | Descargar ticket oficial (PDF, requiere instancia) | `GET /track/voucher` |
+| | Descargar etiqueta PDF (requiere instancia) | `GET /track/label` |
 | **Cuentas** | Cotizar envío | `POST /account/quote` |
 | | Consultar DNI | `GET /account/dni/:dni` |
 | | Registrar envío individual *(Pro)* | `POST /account/register` |

@@ -382,23 +382,10 @@ function getOperationFields(resource: string, operation: string): INodePropertie
 			];
 
 		case 'tracking/voucher':
-			return [
-				orderNumberField,
-				orderCodeField,
-				{
-					displayName: 'Formato',
-					name: 'format',
-					type: 'options',
-					options: [
-						{ name: 'Imagen (PNG)', value: 'image' },
-						{ name: 'PDF', value: 'pdf' },
-					],
-					default: 'image',
-				},
-			];
+			return [instanceIdField, orderNumberField, orderCodeField];
 
 		case 'tracking/label':
-			return [orderNumberField, orderCodeField];
+			return [instanceIdField, orderNumberField, orderCodeField];
 
 		case 'cuenta/quote':
 			return [
@@ -1180,17 +1167,13 @@ export class ShalomApi implements INodeType {
 					case 'tracking/voucher':
 					case 'tracking/label': {
 						const isVoucher = operation === 'voucher';
-						const format = isVoucher
-							? String(this.getNodeParameter('format', itemIndex, 'image') ?? 'image')
-							: 'pdf';
+						const instanceId = getInstanceId(itemIndex);
 						const orderNumber = String(this.getNodeParameter('orderNumber', itemIndex, ''));
 						const orderCode = String(this.getNodeParameter('orderCode', itemIndex, ''));
-						const qs: IDataObject = { orderNumber, orderCode };
-						const isPdf = format === 'pdf';
-						const mimeType = isPdf ? 'application/pdf' : 'image/png';
+						const qs: IDataObject = { instanceId, orderNumber, orderCode };
+						const mimeType = 'application/pdf';
 						const path = isVoucher ? 'voucher' : 'label';
-						const fileName = `${path}-${orderNumber}.${isPdf ? 'pdf' : 'png'}`;
-						if (isVoucher) qs.format = format;
+						const fileName = `${path}-${orderNumber}.pdf`;
 						const buffer = await request('shalomApiApi', {
 							method: 'GET',
 							url: `${baseUrl}/track/${path}`,
