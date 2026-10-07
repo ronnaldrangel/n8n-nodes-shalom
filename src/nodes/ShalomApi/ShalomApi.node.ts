@@ -776,6 +776,13 @@ function getOperationFields(resource: string, operation: string): INodePropertie
 				instanceIdField,
 				guiaField,
 				{
+					displayName: 'Código de seguridad de la guía',
+					name: 'codigo',
+					type: 'string',
+					default: '',
+					description: 'Recomendado: con el código la autogestión funciona con la guía en ruta, en destino o entregada (Shalom decide qué se permite). Sin él solo aplica a envíos pendientes.',
+				},
+				{
 					displayName: 'Tipo de autogestión',
 					name: 'tipo',
 					type: 'options',
@@ -1425,7 +1432,7 @@ export class ShalomApi implements INodeType {
 						const canal = String(this.getNodeParameter('canal', itemIndex, 'sms') ?? '');
 						if (canal) body.canal = canal;
 
-						for (const key of ['email', 'destinatario', 'destino', 'direccion']) {
+						for (const key of ['codigo', 'email', 'destinatario', 'destino', 'direccion']) {
 							const value = String(this.getNodeParameter(key, itemIndex, '') ?? '');
 							if (value !== '') body[key] = value;
 						}
