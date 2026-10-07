@@ -2,7 +2,7 @@
 
 Nodo de [n8n](https://n8n.io) para integrar **Shalom API Perú** ([shalom-api.lat](https://shalom-api.lat)) en tus flujos de automatización: rastrea envíos de Shalom, consulta el catálogo de agencias con direcciones y coordenadas, cotiza tarifas, valida DNI y crea guías reales en Shalom Pro desde n8n — sin navegador y sin polling.
 
-**Casos de uso típicos**: sincronizar pedidos de un ecommerce (WooCommerce, Shopify) con guías automáticas, notificar cambios de estado de envíos a Slack/WhatsApp, y descarga de comprobantes y etiquetas en PDF para tu operación.
+**Casos de uso típicos**: sincronizar pedidos de un ecommerce (WooCommerce, Shopify) con guías automáticas, notificar cambios de estado de envíos a Slack/WhatsApp, y descarga del ticket oficial (PDF o imagen lista para WhatsApp) y etiquetas en PDF para tu operación.
 
 > Proyecto independiente de integración compatible con Shalom Pro. No está afiliado a Shalom Empresarial S.A.C.
 
@@ -62,7 +62,7 @@ N8N_CUSTOM_EXTENSIONS="$(npm root -g)" n8n start
 | | Listar distritos | `GET /locations/departments/:depId/provinces/:provId/districts` |
 | **Tracking** | Rastrear envío | `POST /track` |
 | | Rastrear en lote (máx. 50) | `POST /track/batch` |
-| | Descargar ticket oficial (PDF, requiere instancia) | `GET /track/voucher` |
+| | Descargar ticket oficial (PDF o imagen, requiere instancia) | `GET /track/voucher` |
 | | Descargar etiqueta PDF (requiere instancia) | `GET /track/label` |
 | **Cuentas** | Cotizar envío | `POST /account/quote` |
 | | Consultar DNI | `GET /account/dni/:dni` |
@@ -71,7 +71,7 @@ N8N_CUSTOM_EXTENSIONS="$(npm root -g)" n8n start
 | | Envíos pendientes *(Pro)* | `POST /account/pending-shipments` |
 | | Información del usuario *(Pro)* | `POST /account/get-user` |
 | **Instancias** | Crear instancia *(Pro)* | `POST /instances` |
-| **Autogestión** | Cambiar clave de recojo *(Pro)* | `POST /shipments/pickup-code` |
+| **Autogestión** | Cambiar clave de recojo (cualquier estado con `codigo`) *(Pro)* | `POST /shipments/pickup-code` |
 | | Iniciar autogestión (envía el código) *(Pro)* | `POST /shipments/self-management` |
 | | Confirmar autogestión *(Pro)* | `POST /shipments/self-management/confirm` |
 | | Historial de autogestiones *(Pro)* | `GET /shipments/self-management` |
@@ -92,7 +92,7 @@ La credencial **Shalom API** incluye un test que consulta el endpoint `GET /vali
 
 1. **Rastrear una guía**: Tracking → *Rastrear envío* con `orderNumber` y `orderCode`, y envía el resultado a un canal de notificación.
 2. **Registrar envío**: Instancias → *Iniciar sesión (Shalom Pro)* con usuario/clave, luego Cuentas → *Registrar envío individual* o *masivo*.
-3. **Descargar voucher al detectar cambio de estado**: Tracking → *Descargar comprobante* (formato imagen o PDF). La salida es binaria y se puede guardar/adjuntar.
+3. **Descargar el ticket al detectar un cambio de estado**: Tracking → *Descargar ticket oficial* (formato PDF, imagen JPEG para WhatsApp o PNG). La salida es binaria y se puede guardar/adjuntar.
 
 ## Desarrollo
 

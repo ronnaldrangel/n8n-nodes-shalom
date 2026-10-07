@@ -81,8 +81,9 @@ const RESOURCES: ResourceDefinition[] = [
 			},
 			{
 				value: 'voucher',
-				displayName: 'Descargar comprobante',
-				description: 'Descarga el comprobante (imagen o PDF) del envío.',
+				displayName: 'Descargar ticket oficial',
+				description:
+					'Descarga el ticket oficial del envío en PDF o como imagen (JPEG/PNG) para WhatsApp.',
 			},
 			{
 				value: 'label',
@@ -382,7 +383,24 @@ function getOperationFields(resource: string, operation: string): INodePropertie
 			];
 
 		case 'tracking/voucher':
-			return [instanceIdField, orderNumberField, orderCodeField];
+			return [
+				instanceIdField,
+				orderNumberField,
+				orderCodeField,
+				{
+					displayName: 'Formato',
+					name: 'format',
+					type: 'options',
+					options: [
+						{ name: 'PDF (ticket oficial)', value: 'pdf' },
+						{ name: 'Imagen JPEG (para WhatsApp)', value: 'image' },
+						{ name: 'Imagen PNG', value: 'png' },
+					],
+					default: 'pdf',
+					description:
+						'El ticket oficial se emite en PDF. Con imagen se rasteriza ese mismo PDF (JPEG para WhatsApp o PNG).',
+				},
+			];
 
 		case 'tracking/label':
 			return [instanceIdField, orderNumberField, orderCodeField];
@@ -761,6 +779,14 @@ function getOperationFields(resource: string, operation: string): INodePropertie
 			return [
 				instanceIdField,
 				guiaField,
+				{
+					displayName: 'Código de seguridad de la guía',
+					name: 'codigo',
+					type: 'string',
+					default: '',
+					description:
+						'Recomendado: con el código la clave se puede cambiar con el envío en ruta, en destino o entregado. Sin él solo aplica a envíos pendientes.',
+				},
 				{
 					displayName: 'Nueva clave de recojo',
 					name: 'clave',
@@ -1178,9 +1204,16 @@ export class ShalomApi implements INodeType {
 						const orderNumber = String(this.getNodeParameter('orderNumber', itemIndex, ''));
 						const orderCode = String(this.getNodeParameter('orderCode', itemIndex, ''));
 						const qs: IDataObject = { instanceId, orderNumber, orderCode };
-						const mimeType = 'application/pdf';
+						// El ticket oficial solo existe en PDF: con format=image la API
+						// devuelve ese mismo ticket rasterizado (JPEG para WhatsApp) o PNG.
+						const format = isVoucher
+							? String(this.getNodeParameter('format', itemIndex, 'pdf'))
+							: 'pdf';
+						if (isVoucher) qs.format = format;
+						const mimeType = format === 'png' ? 'image/png' : format === 'pdf' ? 'application/pdf' : 'image/jpeg';
+						const extension = format === 'png' ? 'png' : format === 'pdf' ? 'pdf' : 'jpg';
 						const path = isVoucher ? 'voucher' : 'label';
-						const fileName = `${path}-${orderNumber}.pdf`;
+						const fileName = `${path}-${orderNumber}.${extension}`;
 						const buffer = await request('shalomApiApi', {
 							method: 'GET',
 							url: `${baseUrl}/track/${path}`,
@@ -1410,6 +1443,8 @@ export class ShalomApi implements INodeType {
 							guia: String(this.getNodeParameter('guia', itemIndex, '')),
 							clave: String(this.getNodeParameter('clave', itemIndex, '')),
 						};
+						const codigoPickup = String(this.getNodeParameter('codigo', itemIndex, '')).trim();
+						if (codigoPickup) body.codigo = codigoPickup;
 						const response = await request('shalomApiApi', {
 							method: 'POST',
 							url: `${baseUrl}/shipments/pickup-code`,

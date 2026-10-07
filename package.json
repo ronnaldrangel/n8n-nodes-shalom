@@ -1,6 +1,6 @@
 {
   "name": "n8n-nodes-shalom",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "description": "Nodo de n8n para consumir la API de Shalom: agencias, ubicaciones, tracking, cuentas, instancias y autogestiones de guías.",
   "keywords": [
     "n8n-community-node-package",
