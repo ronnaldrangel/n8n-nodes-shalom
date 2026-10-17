@@ -216,7 +216,7 @@ const orderNumberField: INodeProperties = {
 	type: 'string',
 	default: '',
 	required: true,
-	description: 'Número de guía / orden (8 dígitos).',
+	description: 'Número de guía / orden (8 a 12 dígitos; las guías nuevas tienen 9).',
 };
 
 const orderCodeField: INodeProperties = {
@@ -366,7 +366,7 @@ function getOperationFields(resource: string, operation: string): INodePropertie
 									type: 'string',
 									default: '',
 									required: true,
-									description: 'Número de guía (8 dígitos).',
+									description: 'Número de guía (8 a 12 dígitos).',
 								},
 								{
 									displayName: 'Código de seguridad',
